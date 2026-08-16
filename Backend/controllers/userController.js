@@ -2,6 +2,7 @@ const User = require("../models/userModel.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const verifyEmail = require("../services/verifyEmail.js");
+const Session = require("../models/sessionModel");
 
 const register = async (req, res) => {
   try {
@@ -59,8 +60,7 @@ const verify = async (req, res) => {
     const token = authHeader.split(" ")[1];
     let decoded;
     try {
-      ((decoded = jwt.verify(token, process.env.JWT_SECRET)),
-        { expiresIn: "1m" });
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
       if (error.name === "TokenExpiredError") {
         return res.status(400).json({
@@ -173,10 +173,45 @@ const login = async (req, res) => {
 
     exisitingUser.isLoggedIn = true;
     await exisitingUser.save();
+
+    const exisitingSession = await Session.findOne({
+      userId: exisitingUser._id,
+    });
+    if (exisitingSession) {
+      await Session.deleteOne({ userId: exisitingUser._id });
+    }
+
+    await Session.create({ userId: exisitingUser._id });
+    return res.status(200).json({
+      success: true,
+      message: `Welcome back ${exisitingUser.firstName}`,
+      user: exisitingUser,
+      accessToken,
+      refreshToken,
+    });
   } catch (error) {
     return res.status(400).json({
       success: false,
-      message: "",
+      message: error.message,
+    });
+  }
+};
+
+const logout = async (req, res) => {
+  try {
+    const userId = req.id;
+
+    await Session.findOneAndDelete({ userId: userId });
+    await User.findByIdAndUpdate(userId, { isLoggedIn: false });
+
+    return res.status(200).json({
+      success: true,
+      message: "User Logout Successfully",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
     });
   }
 };
@@ -185,4 +220,6 @@ module.exports = {
   register,
   verify,
   reVerify,
+  login,
+  logout,
 };
