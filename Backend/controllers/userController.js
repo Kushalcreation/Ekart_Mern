@@ -371,6 +371,30 @@ const allUser = async (_, res) => {
   }
 };
 
+const getUserById = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId).select(
+      "-password -otp -otpExpiry -token",
+    );
+    if (!user) {
+      return res.status(400).json({
+        success: true,
+        message: "User not found",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   register,
   verify,
@@ -382,4 +406,5 @@ module.exports = {
   changePassword,
 
   allUser,
+  getUserById,
 };

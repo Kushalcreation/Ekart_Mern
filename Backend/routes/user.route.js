@@ -9,6 +9,7 @@ const {
   verifyOTP,
   changePassword,
   allUser,
+  getUserById,
 } = require("../controllers/userController");
 const { isAuthenticated, isAdmin } = require("../middeleware/isAuthenticated");
 
@@ -24,5 +25,6 @@ router.post("/verify-otp/:email", verifyOTP);
 router.post("/change-password/:email", changePassword);
 
 router.get("/all-user", isAuthenticated, isAdmin, allUser);
+router.get("/get-user/:userId", getUserById);
 
 module.exports = router;
