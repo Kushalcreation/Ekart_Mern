@@ -17,7 +17,7 @@ const isAuthenticated = async (req, res, next) => {
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
-      if (Error.name === TokenExpiredError) {
+      if (error.name === TokenExpiredError) {
         return res.status(400).json({
           success: false,
           message: "the registration token is expired",
@@ -29,7 +29,7 @@ const isAuthenticated = async (req, res, next) => {
       });
     }
 
-    const user = User.findById(decoded.id);
+    const user = await User.findById(decoded.id);
     if (!user)
       return res.status(400).json({
         success: false,

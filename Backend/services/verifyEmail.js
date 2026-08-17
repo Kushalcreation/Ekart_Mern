@@ -11,7 +11,7 @@ const verifyEmail = async (token, email) => {
   });
 
   const mailConfiguration = {
-    from: process.env,
+    from: process.env.MAIL_USER,
     to: email,
     subject: "Email Verification",
     text: `Hi! There, You have recently visited 

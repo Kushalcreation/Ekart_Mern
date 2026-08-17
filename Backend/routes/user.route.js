@@ -5,6 +5,8 @@ const {
   reVerify,
   login,
   logout,
+  forgotPassword,
+  verifyOTP,
 } = require("../controllers/userController");
 const isAuthenticated = require("../middeleware/isAuthenticated");
 
@@ -14,6 +16,8 @@ router.post("/register", register);
 router.post("/verify", verify);
 router.post("/reverify", reVerify);
 router.post("/login", login);
+router.post("/forgot-password", forgotPassword);
 router.post("/logout", isAuthenticated, logout);
+router.post("/verify-otp/:email", verifyOTP);
 
 module.exports = router;
