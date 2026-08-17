@@ -36,6 +36,7 @@ const isAuthenticated = async (req, res, next) => {
         message: "User not found",
       });
 
+    req.user = user;
     req.id = user._id;
     next();
   } catch (error) {
@@ -46,4 +47,14 @@ const isAuthenticated = async (req, res, next) => {
   }
 };
 
-module.exports = isAuthenticated;
+const isAdmin = async (req, res, next) => {
+  if (req.user && req.user.role === "admin") {
+    return next();
+  }
+  return res.status(400).json({
+    success: false,
+    message: "Access denied : admin only",
+  });
+};
+
+module.exports = { isAuthenticated, isAdmin };

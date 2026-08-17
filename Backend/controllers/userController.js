@@ -313,6 +313,64 @@ const verifyOTP = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    const { newPassword, confirmPassword } = req.body;
+    const { email } = req.params;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "user not found",
+      });
+    }
+
+    if (!newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "all field required",
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Password doesnot match",
+      });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    User.password = hashed;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const allUser = async (_, res) => {
+  try {
+    const users = await User.find();
+    return res.status(200).json({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   register,
   verify,
@@ -321,4 +379,7 @@ module.exports = {
   logout,
   forgotPassword,
   verifyOTP,
+  changePassword,
+
+  allUser,
 };
