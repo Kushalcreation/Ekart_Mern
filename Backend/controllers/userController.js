@@ -395,6 +395,81 @@ const getUserById = async (req, res) => {
   }
 };
 
+const updateUser = async (req, res) => {
+  try {
+    const userIdtoUpdate = req.params.id;
+    const loggedInUser = req.user; // from isAuthentication middleware
+
+    const { firstName, lastName, phoneNo, address, city, zipCode, role } =
+      req.body;
+
+    if (
+      loggedInUser._id.toString() !== userIdtoUpdate &&
+      loggedInUser.role !== "admin"
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not allowed to update this profile",
+      });
+    }
+
+    let user = await User.findById(userIdtoUpdate);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    let profilePicUrl = user.profilePic;
+    let profilePicPublicId = user.profilePicPublicId;
+    //if a new file upload
+
+    if (req.file) {
+      if (profilePicPublicId) {
+        await cloudinary.uploader.destroy(profilePicPublicId);
+      }
+    }
+
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: "profiles" },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        },
+      );
+      stream.end(req.file.buffer);
+    });
+    profilePicUrl = uploadResult.secure_url;
+    profilePicPublicId = uploadResult.public_id;
+
+    //update fields
+    user.firstName = firstName || user.firstName;
+    user.lastName = lastName || user.lastName;
+    user.phoneNo = phoneNo || user.phoneNo;
+    user.address = address || user.address;
+    user.city = city || user.city;
+    user.zipCode = zipCode || user.zipCode;
+    user.profilePic = profilePicUrl;
+    user.profilePicPublicId = profilePicPublicId;
+    user.role = role;
+
+    const updatedUser = await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile Updated Successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   register,
   verify,
@@ -407,4 +482,5 @@ module.exports = {
 
   allUser,
   getUserById,
+  updateUser,
 };

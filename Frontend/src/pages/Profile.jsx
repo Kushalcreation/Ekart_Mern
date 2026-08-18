@@ -8,8 +8,46 @@ import {
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button, Input } from "@base-ui/react";
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 
 const Profile = () => {
+  const { user } = useSelector((store) => store.user);
+  const params = useParams();
+  const userId = params.userId;
+  const [updateUser, setUpdateUser] = useState({
+    firstName: user?.firstName,
+    lastName: user?.lastName,
+    email: user?.email,
+    phoneNo: user?.phoneNo,
+    address: user?.address,
+    city: user?.city,
+    zipCode: user?.zipCode,
+    profilePic: user?.profilePic,
+    role: user?.role,
+  });
+  const userLogo = "../../public/no_user.png";
+  const [File, setFile] = useState(null);
+
+  const handleChange = (e) => {
+    setUpdateUser({ ...updateUser, [e.target.name]: e.target.value });
+  };
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.file[0];
+    setFile(selectedFile);
+    setUpdateUser({
+      ...updateUser,
+      profilePic: URL.createObjectURL(selectedFile),
+    }); //preview only
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDeafault();
+    console.log(updateUser);
+  };
+
   return (
     <div className="pt-20 min-h-screen bg-gray-100">
       <Tabs defaultValue="overview" className="max-w-7xl mx-auto items-center">
@@ -27,7 +65,7 @@ const Profile = () => {
                 {/* Profile Picture */}
                 <div className="flex flex-col items-center">
                   <img
-                    src="Ekart.png"
+                    src={updateUser?.profilePic || userLogo}
                     alt="profile"
                     className="w-32 h-32 rounded-full object-cover border-4 border-pink-800"
                   />

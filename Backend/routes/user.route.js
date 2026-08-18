@@ -10,8 +10,11 @@ const {
   changePassword,
   allUser,
   getUserById,
+  updateUser,
 } = require("../controllers/userController");
+
 const { isAuthenticated, isAdmin } = require("../middeleware/isAuthenticated");
+const { singleUpload } = require("../middeleware/multer");
 
 const router = require("express").Router();
 
@@ -26,5 +29,6 @@ router.post("/change-password/:email", changePassword);
 
 router.get("/all-user", isAuthenticated, isAdmin, allUser);
 router.get("/get-user/:userId", getUserById);
+router.put("/update/:id", isAuthenticated, singleUpload, updateUser);
 
 module.exports = router;
