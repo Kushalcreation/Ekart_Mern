@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -24,6 +25,8 @@ const Signup = () => {
     email: "",
     password: "",
   });
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,9 +41,25 @@ const Signup = () => {
     console.log(formData);
 
     try {
-      const res = await axios.post(`http://localhost:3000/api/user/register`);
+      setLoading(true);
+      const res = await axios.post(
+        `http://localhost:3000/api/user/register`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      if (res.data.success) {
+        navigate("/verify");
+        toast.success(res.data.message);
+      }
     } catch (error) {
       console.log(error);
+      toast.error(error.response.data.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -134,7 +153,14 @@ const Signup = () => {
             type="submit"
             className="w-full cursor-pointer bg-pink-600 hover:bg-pink-500"
           >
-            Sign Up
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Please wait
+              </>
+            ) : (
+              "Signup"
+            )}
           </Button>
           <p>
             Already have an account ?{" "}
