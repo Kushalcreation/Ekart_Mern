@@ -9,7 +9,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: "/Home",
     element: (
       <>
         <Navbar />
@@ -38,6 +38,14 @@ const router = createBrowserRouter([
     element: (
       <>
         <VerifyEmail />
+      </>
+    ),
+  },
+  {
+    path: "/login",
+    element: (
+      <>
+        <Login />
       </>
     ),
   },
