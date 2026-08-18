@@ -1,10 +1,33 @@
+import axios from "axios";
 import { Button } from "./ui/button";
 import { ShoppingCart } from "lucide-react";
-import React from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { useSelector } from "react-redux";
 
 const Navbar = () => {
-  const user = true;
+  const { user } = useSelector((store) => store.user);
+  const accessToken = localStorage.getItem("accessToken");
+
+  const logoutHandler = async () => {
+    try {
+      const res = await axios.post(
+        "http://localhost:3000/api/user/logout",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+      if (res.data.message) {
+        toast.success(res.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <header className="bg-pink-50 fixed w-full z-20 border-pink-200">
       <div className="max-w-7xl mx-auto flex justify-between items-center py-3">
@@ -21,7 +44,11 @@ const Navbar = () => {
             <Link to={"/products"}>
               <li>Products</li>
             </Link>
-            {user && <Link to={"/profile"}>Hello User</Link>}
+            {user && (
+              <Link to={"/profile"}>
+                <li> Hello,{user.firstName}</li>
+              </Link>
+            )}
           </ul>
           <Link to={"/cart"} className="relative">
             <ShoppingCart />
@@ -30,7 +57,10 @@ const Navbar = () => {
             </span>
           </Link>
           {user ? (
-            <Button className="bg-pink-600 cursor-pointer text-white">
+            <Button
+              onClick={logoutHandler}
+              className="bg-pink-600 cursor-pointer text-white"
+            >
               Logout
             </Button>
           ) : (
