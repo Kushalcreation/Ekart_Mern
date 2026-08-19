@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const verifyEmail = require("../services/verifyEmail.js");
 const Session = require("../models/sessionModel");
 const otpSendMail = require("../services/otpSendMail.js");
+const cloudinary = require("../services/cloudinary.js");
 
 const register = async (req, res) => {
   try {
@@ -426,23 +427,28 @@ const updateUser = async (req, res) => {
     //if a new file upload
 
     if (req.file) {
+      //Delete old picture
       if (profilePicPublicId) {
         await cloudinary.uploader.destroy(profilePicPublicId);
       }
-    }
 
-    const uploadResult = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        { folder: "profiles" },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        },
-      );
-      stream.end(req.file.buffer);
-    });
-    profilePicUrl = uploadResult.secure_url;
-    profilePicPublicId = uploadResult.public_id;
+      //upload new profile picture
+
+      const uploadResult = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "profiles" },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else resolve(result);
+          },
+        );
+        stream.end(req.file.buffer);
+      });
+
+      profilePicUrl = uploadResult.secure_url;
+      profilePicPublicId = uploadResult.public_id;
+    }
 
     //update fields
     user.firstName = firstName || user.firstName;

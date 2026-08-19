@@ -10,7 +10,7 @@ import Profile from "./pages/Profile";
 
 const router = createBrowserRouter([
   {
-    path: "/Home",
+    path: "/",
     element: (
       <>
         <Navbar />
