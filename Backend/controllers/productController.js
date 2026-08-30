@@ -1,4 +1,4 @@
-const Product = require("../models/productModels.js");
+const Product = require("../models/productModel.js");
 const cloudinary = require("../services/cloudinary.js");
 const getDataUri = require("../utils/dataUri");
 

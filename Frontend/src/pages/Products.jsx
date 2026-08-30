@@ -16,8 +16,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 
 const items = [
-  { label: "Price: High to Low", value: "" },
-  { label: "Price: Low to High", value: "apple" },
+  { label: "Price: High to Low", value: "highToLow" },
+  { label: "Price: Low to High", value: "lowToHigh" },
 ];
 
 const Products = () => {
@@ -102,7 +102,10 @@ const Products = () => {
         />
         <div className="flex flex-col flex-1">
           <div className="flex justify-end mb-4">
-            <Select items={items}>
+            <Select
+              items={items}
+              onValueChange={(value) => setSortOrder(value)}
+            >
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Sort By Price " />
               </SelectTrigger>
