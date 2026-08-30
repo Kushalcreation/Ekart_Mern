@@ -76,7 +76,116 @@ const getAllProduct = async (_, res) => {
   }
 };
 
+const deleteAllProduct = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(400).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+    // Delete image from cloudinary
+    if (product.productImg && product.productImg.length > 0) {
+      for (let img of product.productImg) {
+        const result = await cloudinary.uploader.destroy(img.public_id);
+      }
+    }
+    //delete img from MongoDb
+    await Product.findByIdAndDelete(productId);
+    return res.status(200).json({
+      success: true,
+      message: "Product deleted Successfully",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const updateProduct = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const {
+      productName,
+      productDesc,
+      productPrice,
+      category,
+      brand,
+      exisitingImages,
+    } = req.body;
+
+    console.log(productName);
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(400).json({
+        success: false,
+        message: "User Not Found",
+      });
+    }
+    let updatedImages = [];
+
+    //keep old images
+    if (exisitingImages) {
+      const keepIds = JSON.parse(exisitingImages);
+      updatedImages = product.productImg.filter((img) =>
+        keepIds.includes(img.public_id),
+      );
+
+      //delete only removed images
+      const removedImages = product.productImg.filter(
+        (img) => !keepIds.includes(img.public_id),
+      );
+      for (let img of removedImages) {
+        await cloudinary.uploader.destroy(img.public._id);
+      }
+    } else {
+      updatedImages = product.productImg; //kepp all if nothing sent
+    }
+
+    //upload new images if any
+    if (req.files && req.files > 0) {
+      for (let img of req.files) {
+        const fileUri = getDataUri(file);
+        const result = await cloudinary.uploader.upload(fileUri, {
+          folder: "ekart_products",
+        });
+        updatedImages.push({
+          url: result.secure_url,
+          public_id: result.public_id,
+        });
+      }
+    }
+
+    // update product
+    product.productName = productName || product.productName;
+    product.productDesc = productDesc || product.productDesc;
+    product.productPrice = productPrice || product.productPrice;
+    product.category = category || product.category;
+    product.brand = brand || product.brand;
+    product.productImg = updatedImages;
+
+    await product.save();
+    return res.status(200).json({
+      success: false,
+      message: "Product Updated Successfully",
+      product,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   addProduct,
   getAllProduct,
+  deleteAllProduct,
+  updateProduct,
 };
