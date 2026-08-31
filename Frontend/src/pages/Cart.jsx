@@ -1,8 +1,133 @@
+import { useSelector } from "react-redux";
+import userLogo from "../assets/no_user.png";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ShoppingCart, Trash2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Link, useNavigate } from "react-router-dom";
+
 const Cart = () => {
+  const { cart } = useSelector((store) => store.product);
+
+  const subtotal = cart?.totalPrice;
+  const shipping = subtotal > 299 ? 0 : 10;
+  const tax = subtotal * 0.5; // 5% tax
+  const total = subtotal + shipping + tax;
+  const navigate = useNavigate();
+
   return (
-    <>
-      <h1 className="pt-20">CART PAGE</h1>
-    </>
+    <div className="pt-20 bg-gray-50 min-h-screen">
+      {cart?.items?.length > 0 ? (
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-2xl font-bold text-gray-800 mb-7">
+            Shopping Cart
+          </h1>
+
+          <div className="max-w-7xl mx-auto flex gap-7">
+            <div className="flex flex-col gap-5 flex-1">
+              {cart?.items?.map((product, index) => {
+                return (
+                  <Card key={index}>
+                    <div className="flex justify-between items-center pr-7">
+                      <div className="flex items-center w-[350px]">
+                        <img
+                          src={
+                            product?.productId?.productImg?.[0]?.url || userLogo
+                          }
+                          alt=""
+                          className="w-25 h-25 pl-2"
+                        />
+                        <div className="w-[280px] pl-3">
+                          <h1 className="font-semibold truncate">
+                            {product?.productId?.productName}
+                          </h1>
+                          <p>₹{product?.productId?.productPrice}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap items-center">
+                        <Button variant="outline"> - </Button>
+                        <span className="mx-4"> 1 </span>
+                        <Button variant="outline"> + </Button>
+                      </div>
+                      <p>
+                        ₹{product?.productId?.productPrice * product?.quantity}
+                      </p>
+                      <p className="flex text-red-500 items-center gap-1 cursor-pointer">
+                        <Trash2 />
+                        Remove
+                      </p>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+            <div>
+              <Card className="w-[400px]">
+                <CardHeader>
+                  <CardTitle> Oreder Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between">
+                    <span>Subtotal ({cart?.items?.length} items)</span>
+                    <span>₹{cart?.totalPrice?.toLocaleString("en-IN")}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Shipping</span>
+                    <span>₹{shipping}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tax (5%)</span>
+                    <span>₹{tax}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Total</span>
+                    <span>₹{total}</span>
+                  </div>
+                  <div className="space-y-3 pt-4">
+                    <div className="flex space-x-2">
+                      <Input placeholder="Promo code" />
+                      <Button variant="outline">Apply</Button>
+                    </div>
+                    <Button className="w-full bg-pink-600">PLACE ORDER</Button>
+                    <Button variant="outline" className="w-full bg-transparent">
+                      <Link to="/products">Continue Shopping</Link>
+                    </Button>
+                  </div>
+                  <div className="text-sm text-muted-foreground pt-4">
+                    <p>* Free shipping on order over 299</p>
+                    <p>* 30 days free policy</p>
+                    <p>* Secure checkout with SSL encryption</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
+          {/* Icon */}
+          <div className="bg-pink-100 p-6 rounded-full">
+            <ShoppingCart className="w-16 h-16 text-pink-600" />
+          </div>
+          {/* title */}
+          <h2 className="mt-6 text-2xl font-bold text-gray-800">
+            {" "}
+            Your cart is Empty
+          </h2>
+          <p className="mt-2 text-gray-600">
+            Looks like you haven't added anything to your cart yet
+          </p>
+          <Button
+            onClick={() => navigate("/products")}
+            className="mt-6 bg-pink-600 text-white rounded-xl hover:bg-pink-700 cursor-pointer"
+          >
+            Start Shopping
+          </Button>
+        </div>
+      )}
+    </div>
   );
 };
 

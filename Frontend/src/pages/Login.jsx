@@ -17,6 +17,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/redux/userSlice";
+import { setCart } from "@/redux/productSlice";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -53,8 +54,27 @@ const Login = () => {
         },
       );
       if (res.data.success) {
+        const accessToken = res.data.accessToken;
         dispatch(setUser(res.data.user));
-        localStorage.setItem("accessToken", res.data.accessToken);
+        localStorage.setItem("accessToken", accessToken);
+
+        // Fetch cart after login
+        try {
+          const cartRes = await axios.get(
+            "http://localhost:3000/api/cart/get",
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            },
+          );
+          if (cartRes.data.success) {
+            dispatch(setCart(cartRes.data.cart));
+          }
+        } catch (cartError) {
+          console.log("Cart fetch error:", cartError);
+        }
+
         navigate("/");
         toast.success(res.data.message);
       }

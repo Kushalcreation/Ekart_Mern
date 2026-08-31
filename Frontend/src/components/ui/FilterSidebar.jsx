@@ -14,11 +14,9 @@ const FilterSidebar = ({
 }) => {
   const Categories = allProducts.map((p) => p.category);
   const UniqueCategory = ["All", ...new Set(Categories)];
-  console.log(UniqueCategory);
 
   const Brands = allProducts.map((b) => b.brand);
   const UniqueBrand = ["All", ...new Set(Brands)];
-  console.log(UniqueBrand);
 
   const handleCategoryClick = (val) => {
     setCategory(val);
@@ -77,7 +75,7 @@ const FilterSidebar = ({
         {UniqueBrand.map((item, index) => {
           return (
             <option key={index} value={item}>
-              {<item className="toUppercase">{item}</item>}
+              {item.toUpperCase()}
             </option>
           );
         })}

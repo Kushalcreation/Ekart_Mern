@@ -1,4 +1,8 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { useEffect } from "react";
+import axios from "axios";
+import { useDispatch } from "react-redux";
+import { setCart } from "./redux/productSlice";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Signup from "./pages/Signup";
@@ -83,6 +87,33 @@ const router = createBrowserRouter([
 ]);
 
 const App = () => {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      const accessToken = localStorage.getItem("accessToken");
+      if (accessToken) {
+        try {
+          const cartRes = await axios.get(
+            "http://localhost:3000/api/cart/get",
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            },
+          );
+          if (cartRes.data.success) {
+            dispatch(setCart(cartRes.data.cart));
+          }
+        } catch (error) {
+          console.log("Cart fetch error:", error);
+        }
+      }
+    };
+
+    fetchCart();
+  }, [dispatch]);
+
   return (
     <>
       <RouterProvider router={router} />

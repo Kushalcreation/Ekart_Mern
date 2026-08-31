@@ -8,9 +8,10 @@ import { setUser } from "@/redux/userSlice";
 
 const Navbar = () => {
   const { user } = useSelector((store) => store.user);
+  const { cart } = useSelector((store) => store.product);
+
   const accessToken = localStorage.getItem("accessToken");
   const dispatch = useDispatch();
-
   const navigate = useNavigate();
 
   const logoutHandler = async () => {
@@ -24,12 +25,15 @@ const Navbar = () => {
           },
         },
       );
-      if (res.data.message) {
+      if (res.data.success) {
+        localStorage.removeItem("accessToken");
         dispatch(setUser(null));
         toast.success(res.data.message);
+        navigate("/");
       }
     } catch (error) {
       console.log(error);
+      toast.error("Logout failed");
     }
   };
 
@@ -58,7 +62,7 @@ const Navbar = () => {
           <Link to={"/cart"} className="relative">
             <ShoppingCart />
             <span className="bg-pink-500 rounded-full absolute -top-3 -right-5 px-2 text-white">
-              0
+              {cart?.items?.length}
             </span>
           </Link>
           {user ? (
