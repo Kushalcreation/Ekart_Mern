@@ -1,4 +1,4 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import userLogo from "../assets/no_user.png";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,15 +6,58 @@ import { ShoppingCart, Trash2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { setCart } from "@/redux/productSlice";
+import { toast } from "sonner";
 
 const Cart = () => {
   const { cart } = useSelector((store) => store.product);
 
   const subtotal = cart?.totalPrice;
   const shipping = subtotal > 299 ? 0 : 10;
-  const tax = subtotal * 0.5; // 5% tax
+  const tax = subtotal * 0.05; // 5% tax
   const total = subtotal + shipping + tax;
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const API = "http://localhost:3000/api/cart";
+  const accessToken = localStorage.getItem("accessToken");
+
+  const handleUpdateQuantity = async (productId, type) => {
+    try {
+      const res = await axios.put(
+        `${API}/update`,
+        { productId, type },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+      if (res.data.success) {
+        dispatch(setCart(res.data.cart));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleRemove = async (productId) => {
+    try {
+      const res = await axios.delete(`${API}/remove`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        data: { productId },
+      });
+      if (res.data.success) {
+        dispatch(setCart(res.data.cart));
+        toast.success("Product removed from cart");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className="pt-20 bg-gray-50 min-h-screen">
@@ -46,14 +89,39 @@ const Cart = () => {
                         </div>
                       </div>
                       <div className="flex gap items-center">
-                        <Button variant="outline"> - </Button>
-                        <span className="mx-4"> 1 </span>
-                        <Button variant="outline"> + </Button>
+                        <Button
+                          onClick={() =>
+                            handleUpdateQuantity(
+                              product.productId._id,
+                              "decrease",
+                            )
+                          }
+                          variant="outline"
+                        >
+                          {" "}
+                          -{" "}
+                        </Button>
+                        <span className="mx-4"> {product.quantity} </span>
+                        <Button
+                          onClick={() =>
+                            handleUpdateQuantity(
+                              product.productId._id,
+                              "increase",
+                            )
+                          }
+                          variant="outline"
+                        >
+                          {" "}
+                          +{" "}
+                        </Button>
                       </div>
                       <p>
                         ₹{product?.productId?.productPrice * product?.quantity}
                       </p>
-                      <p className="flex text-red-500 items-center gap-1 cursor-pointer">
+                      <p
+                        onClick={() => handleRemove(product?.productId?._id)}
+                        className="flex text-red-500 items-center gap-1 cursor-pointer"
+                      >
                         <Trash2 />
                         Remove
                       </p>

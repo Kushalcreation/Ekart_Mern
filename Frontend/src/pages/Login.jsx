@@ -60,14 +60,11 @@ const Login = () => {
 
         // Fetch cart after login
         try {
-          const cartRes = await axios.get(
-            "http://localhost:3000/api/cart/get",
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
+          const cartRes = await axios.get("http://localhost:3000/api/cart", {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
             },
-          );
+          });
           if (cartRes.data.success) {
             dispatch(setCart(cartRes.data.cart));
           }
