@@ -9,6 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { setCart } from "@/redux/productSlice";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 const Cart = () => {
   const { cart } = useSelector((store) => store.product);
@@ -22,6 +23,21 @@ const Cart = () => {
 
   const API = "http://localhost:3000/api/cart";
   const accessToken = localStorage.getItem("accessToken");
+
+  const loadCart = async () => {
+    try {
+      const res = await axios.get(API, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (res.data.success) {
+        dispatch(setCart(res.data.cart));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const handleUpdateQuantity = async (productId, type) => {
     try {
@@ -58,6 +74,10 @@ const Cart = () => {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    loadCart();
+  }, [dispatch]);
 
   return (
     <div className="pt-20 bg-gray-50 min-h-screen">
