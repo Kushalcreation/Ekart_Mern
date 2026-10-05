@@ -3,15 +3,23 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
+import { X } from "lucide-react";
 
 const ImageUpload = ({ productData, setProductData }) => {
-  const handleImageChange = (event) => {
-    const selectedImages = Array.from(event.target.files || []);
+  const handleIFiles = (e) => {
+    const files = Array.from(e.target.files || []);
     setProductData((prev) => ({
       ...prev,
-      productImg: [...prev.productImg, ...selectedImages],
+      productImg: [...prev.productImg, ...files],
     }));
-    event.target.value = "";
+    e.target.value = "";
+  };
+
+  const removeImg = (index) => {
+    setProductData((prev) => {
+      const updatedImages = prev.productImg.filter((_, i) => i !== index);
+      return { ...prev, productImg: updatedImages };
+    });
   };
 
   return (
@@ -23,7 +31,7 @@ const ImageUpload = ({ productData, setProductData }) => {
         className="hidden"
         accept="image/*"
         multiple
-        onChange={handleImageChange}
+        onChange={handleIFiles}
       />
       <Button type="button" variant="outline">
         <label htmlFor="file-upload" className="cursor-pointer">
@@ -56,8 +64,11 @@ const ImageUpload = ({ productData, setProductData }) => {
                     className="w-full h-32 object-cover rounded-md"
                   />
                   {/* remove button  */}
-                  <button className="absolute top-1 right-1 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover: opacity-100 transaction">
-                    <X sixe={14} />
+                  <button
+                    className="cursor-pointer absolute top-1 right-1 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover: opacity-100 transition"
+                    onClick={() => removeImg(idx)}
+                  >
+                    <X size={14} />
                   </button>
                 </CardContent>
               </Card>

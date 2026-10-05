@@ -14,13 +14,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { setProducts } from "@/redux/productSlice";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
-import React, { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 
 const AddProduct = () => {
   const accessToken = localStorage.getItem("accessToken");
   const dispatch = useDispatch();
+  const { products } = useSelector((store) => store.product);
   const [loading, setLoading] = useState(false);
 
   const [productData, setProductData] = useState({
@@ -41,7 +42,7 @@ const AddProduct = () => {
   };
 
   const submitHandler = async (e) => {
-    e.preventDeafult();
+    e.preventDefault();
     const formData = new FormData();
     formData.append("productName", productData.productName);
     formData.append("productPrice", productData.productPrice);
@@ -69,7 +70,7 @@ const AddProduct = () => {
         },
       );
       if (res.data.success) {
-        dispatch(setProducts([...Products, res.data.product]));
+        dispatch(setProducts([...products, res.data.product]));
         toast.success(res.data.message);
       }
     } catch (error) {
@@ -88,7 +89,7 @@ const AddProduct = () => {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-2">
-            <div className="gird gap-2">
+            <div className="grid gap-2">
               <Label>Product Name</Label>
               <Input
                 type="text"
@@ -100,7 +101,7 @@ const AddProduct = () => {
               />
             </div>
 
-            <div className="gird gap-2">
+            <div className="grid gap-2">
               <Label>Price</Label>
               <Input
                 type="number"
