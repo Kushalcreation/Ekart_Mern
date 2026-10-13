@@ -109,6 +109,7 @@ const deleteAllProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
     const { productId } = req.params;
+
     const {
       productName,
       productDesc,
@@ -118,42 +119,49 @@ const updateProduct = async (req, res) => {
       exisitingImages,
     } = req.body;
 
-    console.log(productName);
-
     const product = await Product.findById(productId);
+
     if (!product) {
-      return res.status(400).json({
+      return res.status(404).json({
         success: false,
-        message: "User Not Found",
+        message: "Product not found",
       });
     }
+
     let updatedImages = [];
 
-    //keep old images
+    // Keep selected existing images
     if (exisitingImages) {
       const keepIds = JSON.parse(exisitingImages);
+
       updatedImages = product.productImg.filter((img) =>
         keepIds.includes(img.public_id),
       );
 
-      //delete only removed images
+      // Delete removed images from Cloudinary
       const removedImages = product.productImg.filter(
         (img) => !keepIds.includes(img.public_id),
       );
-      for (let img of removedImages) {
-        await cloudinary.uploader.destroy(img.public._id);
+
+      for (const img of removedImages) {
+        if (img.public_id) {
+          await cloudinary.uploader.destroy(img.public_id);
+        }
       }
     } else {
-      updatedImages = product.productImg; //kepp all if nothing sent
+      // Keep all existing images if field is not sent
+      updatedImages = [...product.productImg];
     }
 
-    //upload new images if any
-    if (req.files && req.files > 0) {
-      for (let img of req.files) {
+    // Upload new images
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
         const fileUri = getDataUri(file);
+
         const result = await cloudinary.uploader.upload(fileUri, {
           folder: "ekart_products",
         });
+
         updatedImages.push({
           url: result.secure_url,
           public_id: result.public_id,
@@ -161,21 +169,39 @@ const updateProduct = async (req, res) => {
       }
     }
 
-    // update product
-    product.productName = productName || product.productName;
-    product.productDesc = productDesc || product.productDesc;
-    product.productPrice = productPrice || product.productPrice;
-    product.category = category || product.category;
-    product.brand = brand || product.brand;
+    // Update product fields
+    if (productName !== undefined) {
+      product.productName = productName;
+    }
+
+    if (productDesc !== undefined) {
+      product.productDesc = productDesc;
+    }
+
+    if (productPrice !== undefined && productPrice !== "") {
+      product.productPrice = Number(productPrice);
+    }
+
+    if (category !== undefined) {
+      product.category = category;
+    }
+
+    if (brand !== undefined) {
+      product.brand = brand;
+    }
+
     product.productImg = updatedImages;
 
     await product.save();
+
     return res.status(200).json({
-      success: false,
-      message: "Product Updated Successfully",
+      success: true,
+      message: "Product updated successfully",
       product,
     });
   } catch (error) {
+    console.error("Update product error:", error);
+
     return res.status(400).json({
       success: false,
       message: error.message,

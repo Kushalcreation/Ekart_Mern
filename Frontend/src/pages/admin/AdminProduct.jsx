@@ -29,9 +29,45 @@ import { setProducts } from "@/redux/productSlice";
 import { toast } from "sonner";
 import axios from "axios";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+export function AlertDialogDemo() {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger
+        render={<Button variant="outline">Show Dialog</Button>}
+      />
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete your
+            account from our servers.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction>Continue</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 const AdminProduct = () => {
   const { products } = useSelector((store) => store.product);
   const [editProduct, setEditProduct] = useState(null);
+  const [open, setOpen] = useState(false);
   const accessToken = localStorage.getItem("accessToken");
   const dispatch = useDispatch();
 
@@ -44,7 +80,7 @@ const AdminProduct = () => {
   };
 
   const handleSave = async (e) => {
-    e.preventDeafult();
+    e.preventDefault();
     const formData = new FormData();
 
     formData.append("productName", editProduct.productName);
@@ -69,7 +105,7 @@ const AdminProduct = () => {
       });
     try {
       const res = await axios.put(
-        "http:localhost:3000/api/product/update/${editProduct._id}",
+        `http://localhost:3000/api/product/update/${editProduct._id}`,
         formData,
         {
           headers: {
@@ -83,6 +119,29 @@ const AdminProduct = () => {
           p._id === editProduct._id ? res.data.product : p,
         );
         dispatch(setProducts(updateProducts));
+        setOpen(false);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const deleteProductHandler = async (productId) => {
+    try {
+      const remaningProducts = products.filter(
+        (product) => product._id !== productId,
+      );
+      const res = await axios.delete(
+        `http://localhost:3000/api/product/delete/${productId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+      if (res.data.success) {
+        toast.success(res.data.message);
+        dispatch(setProducts(remaningProducts));
       }
     } catch (error) {
       console.log(error);
@@ -128,10 +187,12 @@ const AdminProduct = () => {
                 ₹{product.productPrice}
               </h1>
               <div className="flex gap-3">
-                <Dialog>
+                <Dialog open={open} onOpenChange={setOpen}>
                   <DialogTrigger>
                     <Edit
-                      onClick={() => setEditProduct(product)}
+                      onClick={() => {
+                        (setOpen(true), setEditProduct(product));
+                      }}
                       className="text-green-500 cursor-pointer"
                     />
                   </DialogTrigger>
@@ -217,7 +278,30 @@ const AdminProduct = () => {
                   </DialogContent>
                 </Dialog>
 
-                <Trash2 className="text-red-500 cursor-pointer" />
+                <AlertDialog>
+                  <AlertDialogTrigger render={<Button variant="outline" />}>
+                    <Trash2 className="text-red-500 cursor-pointer" />
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Are you absolutely sure?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently
+                        delete your account from our servers.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => deleteProductHandler(product._id)}
+                      >
+                        Continue
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           </Card>
