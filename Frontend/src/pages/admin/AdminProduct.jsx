@@ -68,8 +68,15 @@ const AdminProduct = () => {
   const { products } = useSelector((store) => store.product);
   const [editProduct, setEditProduct] = useState(null);
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const accessToken = localStorage.getItem("accessToken");
   const dispatch = useDispatch();
+
+  const filteredProducts = products.filter((product) => {
+    product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.category.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -154,6 +161,8 @@ const AdminProduct = () => {
         <div className="relative bg-white rounded-lg">
           <Input
             type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="search Product..."
             className="w-[400px] items-center"
           />
@@ -169,7 +178,7 @@ const AdminProduct = () => {
           </SelectContent>
         </Select>
       </div>
-      {products.map((product, index) => {
+      {filteredProducts.map((product, index) => {
         return (
           <Card key={index} className="px-4">
             <div className="flex items-center justify-between">
