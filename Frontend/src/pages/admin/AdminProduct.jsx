@@ -69,14 +69,29 @@ const AdminProduct = () => {
   const [editProduct, setEditProduct] = useState(null);
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortOrder, setSortOrder] = useState("");
   const accessToken = localStorage.getItem("accessToken");
   const dispatch = useDispatch();
 
-  const filteredProducts = products.filter((product) => {
-    product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  let filteredProducts = products.filter((product) => {
+    return (
+      product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase());
+      product.category.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   });
+
+  if (sortOrder === "lowTOHigh") {
+    filteredProducts = [...filteredProducts].sort(
+      (a, b) => a.productPrice - b.productPrice,
+    );
+  }
+
+  if (sortOrder === "highToLow") {
+    filteredProducts = [...filteredProducts].sort(
+      (a, b) => b.productPrice - a.productPrice,
+    );
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -168,7 +183,7 @@ const AdminProduct = () => {
           />
           <Search className="absolute right-3 top-1 text-gray-300" />
         </div>
-        <Select>
+        <Select onValueChange={(value) => setSortOrder(value)}>
           <SelectTrigger className="w-[200px] bg-white">
             <SelectValue placeholder="Sort By Price" />
           </SelectTrigger>
