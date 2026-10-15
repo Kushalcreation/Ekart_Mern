@@ -4,9 +4,12 @@ import { Edit, Eye, Search } from "lucide-react";
 import UserLogo from "../../assets/no_user.png";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
   const getAllUsers = async () => {
     const accessToken = localStorage.getItem("accessToken");
@@ -25,6 +28,14 @@ const AdminUsers = () => {
     }
   };
 
+  const filteredUsers = users.filter(
+    (user) =>
+      `${user.firstName} ${user.lastName}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
   useEffect(() => {
     getAllUsers();
   }, []);
@@ -35,10 +46,15 @@ const AdminUsers = () => {
       <p>View and manage registered Users</p>
       <div className="flex relative w-[300px] mt-6">
         <Search className="absolute left-2 top-1 text-gray-600 w-5" />
-        <Input className="pl-10" placeholder="Search Users" />
+        <Input
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+          placeholder="Search Users"
+        />
       </div>
       <div className="grid grid-cols-3 gap-7 mt-7">
-        {users.map((user, index) => {
+        {filteredUsers.map((user, index) => {
           return (
             <div key={index} className="bg-pink-100 p-5 rounded-lg ">
               <div className="flex items-center gap-2">
@@ -55,7 +71,10 @@ const AdminUsers = () => {
                 </div>
               </div>
               <div className="mt-3 gap-3 flex">
-                <Button>
+                <Button
+                  onClick={() => navigate(`/dashboard/users/${user?._id}`)}
+                  variant="outline"
+                >
                   <Edit />
                   Edit
                 </Button>
