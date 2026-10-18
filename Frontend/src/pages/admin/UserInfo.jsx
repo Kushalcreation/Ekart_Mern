@@ -1,20 +1,25 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import UserLogo from "../../assets/no_user.png";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
+import { toast } from "sonner";
+import { setUser } from "@/redux/userSlice";
 
 const UserInfo = () => {
   const navigate = useNavigate();
   const [updateUser, setUpdateUser] = useState(null);
   const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
   const { user } = useSelector((store) => store.user);
   const params = useParams();
-  const userId = params.userId;
+  const userId = params.id;
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setUpdateUser({ ...updateUser, [e.target.name]: e.target.value });
@@ -82,6 +87,7 @@ const UserInfo = () => {
       const res = await axios.get(
         `http://localhost:3000/api/user/get-user/${userId}`,
       );
+
       if (res.data.success) {
         setUpdateUser(res.data.user);
       }
@@ -89,6 +95,10 @@ const UserInfo = () => {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    getUserDeatails();
+  }, []);
 
   return (
     <div className="pt-5 min-h-screen bg-gray-100">
@@ -134,7 +144,7 @@ const UserInfo = () => {
                     type="text"
                     name="firstName"
                     placeholder="Jhon"
-                    value={updateUser.firstName}
+                    value={updateUser?.firstName || ""}
                     onChange={handleChange}
                     className="w-full border rounded-lg px-3 py-2 mt-1"
                   />
@@ -146,7 +156,7 @@ const UserInfo = () => {
                     type="text"
                     name="lastName"
                     placeholder="Doe"
-                    value={updateUser.lastName}
+                    value={updateUser?.lastName || ""}
                     onChange={handleChange}
                     className="w-full border rounded-lg px-3 py-2 mt-1"
                   />
@@ -158,7 +168,7 @@ const UserInfo = () => {
                 <Input
                   type="email"
                   name="email"
-                  value={updateUser.email}
+                  value={updateUser?.email || ""}
                   onChange={handleChange}
                   disabled
                   className="w-full border rounded-lg px-3 py-2 mt-1 bg-gray-100 cursor-not-allowed"
@@ -170,7 +180,7 @@ const UserInfo = () => {
                 <Input
                   type="text"
                   name="phoneNo"
-                  value={updateUser.phoneNo || ""}
+                  value={updateUser?.phoneNo || ""}
                   onChange={handleChange}
                   placeholder="Enter your Phone Number"
                   className="w-full border rounded-lg px-3 py-2 mt-1"
@@ -182,7 +192,7 @@ const UserInfo = () => {
                 <Input
                   type="text"
                   name="address"
-                  value={updateUser.address}
+                  value={updateUser?.address || ""}
                   onChange={handleChange}
                   placeholder="Enter your Address"
                   className="w-full border rounded-lg px-3 py-2 mt-1"
@@ -194,7 +204,7 @@ const UserInfo = () => {
                 <Input
                   type="text"
                   name="city"
-                  value={updateUser.city}
+                  value={updateUser?.city || ""}
                   onChange={handleChange}
                   placeholder="Enter your City"
                   className="w-full border rounded-lg px-3 py-2 mt-1"
@@ -206,11 +216,36 @@ const UserInfo = () => {
                 <Input
                   type="text"
                   name="zipCode"
-                  value={updateUser.zipCode}
+                  value={updateUser?.zipCode || ""}
                   onChange={handleChange}
                   placeholder="Enter your Zip Code"
                   className="w-full border rounded-lg px-3 py-2 mt-1"
                 />
+              </div>
+              <div className="flex gap-3 items-center">
+                <Label className="text-sm font-medium whitespace-nowrap">
+                  Role :
+                </Label>
+                <RadioGroup
+                  value={updateUser?.role || ""}
+                  onValueChange={(value) =>
+                    setUpdateUser({ ...updateUser, role: value })
+                  }
+                  className="flex flex-row gap-2 items-center"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="user" id="user" />
+                    <Label htmlFor="user" className="cursor-pointer">
+                      User
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="admin" id="admin" />
+                    <Label htmlFor="admin" className="cursor-pointer">
+                      Admin
+                    </Label>
+                  </div>
+                </RadioGroup>
               </div>
 
               <Button
