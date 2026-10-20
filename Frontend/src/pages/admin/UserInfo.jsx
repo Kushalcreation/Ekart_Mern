@@ -6,7 +6,7 @@ import UserLogo from "../../assets/no_user.png";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import axios from "axios";
 import { toast } from "sonner";
 import { setUser } from "@/redux/userSlice";
@@ -16,7 +16,6 @@ const UserInfo = () => {
   const [updateUser, setUpdateUser] = useState(null);
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { user } = useSelector((store) => store.user);
   const params = useParams();
   const userId = params.id;
   const dispatch = useDispatch();
