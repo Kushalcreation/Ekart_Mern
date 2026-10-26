@@ -5,6 +5,7 @@ const userRoutes = require("./routes/user.route.js");
 const cors = require("cors");
 const productRoutes = require("./routes/productRoutes.js");
 const cartRoutes = require("./routes/cartRoutes.js");
+const orderRoute = require("./routes/oderdRoute.js");
 
 connectDB();
 const PORT = process.env.PORT;
@@ -19,6 +20,7 @@ app.use(
 app.use("/api/user", userRoutes);
 app.use("/api/product", productRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/order", orderRoute);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

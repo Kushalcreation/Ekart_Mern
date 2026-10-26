@@ -21,6 +21,7 @@ const productSlice = createSlice({
 
     // Add a new address
     setAddress: (state, action) => {
+      if (!state.addresses) state.addresses = [];
       state.addresses.push(action.payload);
     },
 
