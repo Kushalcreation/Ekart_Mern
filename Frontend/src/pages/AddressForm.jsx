@@ -1,7 +1,13 @@
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { deleteAddress, setAddress } from "@/redux/productSlice";
+import { Separator } from "@/components/ui/separator";
+import {
+  deleteAddress,
+  setAddress,
+  setSelectedAddress,
+} from "@/redux/productSlice";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -17,9 +23,11 @@ const AddressForm = () => {
     country: "",
   });
 
-  const { addresses = [], selectedAddress } = useSelector(
-    (store) => store.product,
-  );
+  const {
+    cart,
+    addresses = [],
+    selectedAddress,
+  } = useSelector((store) => store.product);
 
   const [showForm, setShowForm] = useState(addresses.length === 0);
   const dispatch = useDispatch();
@@ -35,10 +43,14 @@ const AddressForm = () => {
 
   const handleSave = (e) => {
     e.preventDefault();
-
     dispatch(setAddress(formData));
     setShowForm(false);
   };
+
+  const subtotal = cart.totalPrice;
+  const shipping = subtotal > 50 ? 0 : 10;
+  const tax = parseFloat((subtotal * 0.05).toFixed(2));
+  const total = subtotal + shipping + tax;
 
   return (
     <div className="max-w-7xl mx-auto p-10">
@@ -148,7 +160,7 @@ const AddressForm = () => {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full">
+              <Button onClick={handleSave} type="submit" className="w-full">
                 Save & Continue
               </Button>
             </form>
@@ -159,6 +171,7 @@ const AddressForm = () => {
               {addresses.map((addr, index) => (
                 <div
                   key={index}
+                  onClick={() => dispatch(setSelectedAddress(index))}
                   className={`border p-4 rounded-md cursor-pointer relative ${
                     selectedAddress === index
                       ? "border-pink-600 bg-pink-50"
@@ -184,14 +197,54 @@ const AddressForm = () => {
               ))}
 
               <Button
-                type="button"
+                variant="outline"
                 onClick={() => setShowForm(true)}
                 className="w-full"
               >
-                Add New Address
+                + Add New Address
+              </Button>
+              <Button
+                disabled={selectedAddress === null}
+                className="w-full bg-pink-600"
+              >
+                Proceed To Checkout
               </Button>
             </div>
           )}
+        </div>
+        {/* Right side order summary */}
+
+        <div>
+          <Card className="w-100">
+            <CardHeader>
+              <CardTitle>Order Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between">
+                <span>SubTotal ({cart.items.length}) items</span>
+                <span>₹{subtotal.toLocaleString("en-IN")}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Shipping</span>
+                <span>₹{shipping}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span>Tax</span>
+                <span>₹{tax}</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between font-bold">
+                <span>Total</span>
+                <span>₹{total}</span>
+              </div>
+              <div className="text-sm text-muted-foreground pt-4">
+                <p>* Free Shipping on orders over 299</p>
+                <p>* 30 days return policy</p>
+                <p>* Secure checkout with SSL encryption</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
