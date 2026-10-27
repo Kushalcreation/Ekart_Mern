@@ -195,16 +195,16 @@ const getAllOrdersAdmin = async (req, res) => {
       .populate("user", "name email") // fetch user info
       .populate("products.productId", "productName productPrice"); // fetch product info
 
-    res.josn({
+    res.json({
       success: true,
       count: orders.length,
       orders,
     });
   } catch (error) {
     console.log(error);
-    rex.status(500).json({
+    res.status(500).json({
       success: false,
-      message: "Failed to feth all orders",
+      message: "Failed to fetch all orders",
       error: error.message,
     });
   }
