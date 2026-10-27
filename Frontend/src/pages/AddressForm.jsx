@@ -10,7 +10,6 @@ import {
   setSelectedAddress,
 } from "@/redux/productSlice";
 import axios from "axios";
-import { Currency } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -58,8 +57,119 @@ const AddressForm = () => {
   const tax = parseFloat((subtotal * 0.05).toFixed(2));
   const total = subtotal + shipping + tax;
 
+  // const handlePayment = async () => {
+  //   const accessToken = localStorage.getItem("accessToken");
+  //   try {
+  //     const { data } = await axios.post(
+  //       `${import.meta.env.VITE_URL}/api/order/create-order`,
+  //       {
+  //         products:cart?.items?.map((item) => ({
+  //           productId: item.productId._id,
+  //           quantity: item.quantity,
+  //         })),
+  //         tax,
+  //         shipping,
+  //         amount: total,
+  //         currency: "INR",
+  //       },
+  //       {
+  //         headers: { Authorization: `Bearer ${accessToken}` },
+  //       },
+  //     );
+  //     if (!data.success) return toast.error("Something went wrong");
+
+  //     const options = {
+  //       key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+  //       amount: data.order.amount,
+  //       currency: data.order.currency,
+  //       order_id: data.order.id, // order ID from backend
+  //       name: "Ekart",
+  //       description: "Order Payment",
+
+  //       handler: async function (response) {
+  //         try {
+  //           const verifyes = await axios.post(
+  //             `${import.meta.env.VITE_URL}/api/order/verify-payment`,
+  //             response,
+  //             {
+  //               headers: {
+  //                 Authorization: `Bearer ${accessToken}`,
+  //               },
+  //             },
+  //           );
+  //           if (verifyes.data.success) {
+  //             toast.success("Payment Successful");
+  //             dispatch(setCart({ items: [], totalPrice: 0 }));
+  //             navigate("/order-success");
+  //           } else {
+  //             toast.error("❌ Payment verification failed");
+  //           }
+  //         } catch (error) {
+  //            console.error(
+  //           "Verification error:",
+  //           error.response?.data || error.message
+  //         );
+  //           toast.error("Error Verifying Payment");
+  //         }
+  //       },
+  //       modal: {
+  //         ondismiss: async function () {
+  //           //Handle user closing the popup
+  //           await axios.post(
+  //             `${import.meta.env.VITE_URL}/api/order/verify-payment`,
+  //             {
+  //               razorpay_order_id: data.order.id,
+  //               paymentFailed: true,
+  //             },
+  //             {
+  //               headers: { Authorization: `Bearer ${accessToken}` },
+  //             },
+  //           );
+  //           toast.error("Payment cancelled or failed");
+  //         },
+  //       },
+  //       prefill: {
+  //         name: formData.fullName,
+  //         email: formData.email,
+  //         contact: formData.phone,
+  //       },
+  //       theme: { color: "#F472B6" },
+  //     };
+
+  //     const rzp = new window.Razorpay(options);
+
+  //     rzp.on("payment.failed", async function (response) {
+  //       try {
+  //         await axios.post(
+  //           `${import.meta.env.VITE_URL}/api/order/verify-payment`,
+  //           {
+  //             razorpay_order_id: data.order.id,
+  //             paymentFailed: true,
+  //           },
+  //           {
+  //             headers: {
+  //               Authorization: `Bearer ${accessToken}`,
+  //             },
+  //           },
+  //         );
+
+  //         toast.error("Payment failed. Please try again.");
+  //       } catch (error) {
+  //         console.error("Failed to update order status:", error);
+  //         toast.error("Unable to update payment status");
+  //       }
+  //     });
+
+  //     rzp.open();
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error("Something went wrong whilw processing payment");
+  //   }
+  // };
+
   const handlePayment = async () => {
     const accessToken = localStorage.getItem("accessToken");
+
     try {
       const { data } = await axios.post(
         `${import.meta.env.VITE_URL}/api/order/create-order`,
@@ -74,86 +184,97 @@ const AddressForm = () => {
           currency: "INR",
         },
         {
-          headers: { Authorization: `Bearer ${accessToken}` },
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
         },
       );
-      if (!data.success) return toast.error("Something went wrong");
 
-      console.log("Razorpay", data);
+      if (!data.success) {
+        return toast.error("Unable to create order");
+      }
 
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: data.order.amount,
         currency: data.order.currency,
-        order_id: data.order.id, // order ID from backend
+        order_id: data.order.id,
         name: "Ekart",
         description: "Order Payment",
+
         handler: async function (response) {
           try {
-            const verifyes = await axios.post(
+            const { data: verifyData } = await axios.post(
               `${import.meta.env.VITE_URL}/api/order/verify-payment`,
-              response,
+              {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              },
               {
                 headers: {
                   Authorization: `Bearer ${accessToken}`,
                 },
               },
             );
-            if (verifyes.data.success) {
-              toast.success("Payment Successfull");
+
+            if (verifyData.success) {
+              toast.success("Payment successful");
               dispatch(setCart({ items: [], totalPrice: 0 }));
               navigate("/order-success");
             } else {
-              toast.error("❌ Payment verification failed");
+              toast.error("Payment verification failed");
             }
           } catch (error) {
-            toast.error("Error Verifying Payment", error);
+            console.error(
+              "Verification error:",
+              error.response?.data || error.message,
+            );
+            toast.error(
+              "Payment verification failed. Please check your order status.",
+            );
           }
         },
+
         modal: {
-          ondismiss: async function () {
-            //Handle user closing the popup
-            await axios.post(
-              `${import.meta.env.VITE_URL}/api/order/verify-payment`,
-              {
-                razorpay_order_id: data.order.id,
-                paymentFailed: true,
-              },
-              {
-                headers: { Authorization: `Bearer ${accessToken}` },
-              },
-            );
-            toast.error("Payment cancelled or failed");
+          ondismiss: function () {
+            // Closing the modal does not prove payment failure.
+            toast.info("Payment window closed");
           },
         },
+
         prefill: {
           name: formData.fullName,
           email: formData.email,
           contact: formData.phone,
         },
-        theme: { color: "#F472B6" },
+
+        theme: {
+          color: "#F472B6",
+        },
       };
 
       const rzp = new window.Razorpay(options);
 
-      // Listen for  payment failure
-      rzp.on("payment.failed", async function (response) {
-        await axios.post(
-          `${import.meta.env.VITE_URL}/api/order/verify-payment`,
-          {
-            razorpay_order_id: data.order.id,
-            paymentFailed: true,
-          },
-          {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          },
+      rzp.on("payment.failed", function (response) {
+        console.error("Razorpay payment failure:", response.error?.description);
+
+        toast.error(
+          response.error?.description || "Payment failed. Please try again.",
         );
-        toast.error("Payment Failed Please try again");
+
+        // Do not call verify-payment with paymentFailed: true.
+        // Check the actual payment status with Razorpay on the backend
+        // before marking an order as Failed.
       });
+
       rzp.open();
     } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong whilw processing payment");
+      console.error(
+        "Create order error:",
+        error.response?.data || error.message,
+      );
+      toast.error("Something went wrong while processing payment");
     }
   };
 

@@ -5,7 +5,7 @@ const userRoutes = require("./routes/user.route.js");
 const cors = require("cors");
 const productRoutes = require("./routes/productRoutes.js");
 const cartRoutes = require("./routes/cartRoutes.js");
-const orderRoute = require("./routes/oderdRoute.js");
+const orderRoute = require("./routes/oderRoute.js");
 
 connectDB();
 const PORT = process.env.PORT;

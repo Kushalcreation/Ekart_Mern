@@ -15,6 +15,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
+import MyOrder from "./MyOrder.jsx";
 
 const Profile = () => {
   const { user } = useSelector((store) => store.user);
@@ -246,18 +247,7 @@ const Profile = () => {
           </div>
         </TabsContent>
         <TabsContent value="analytics">
-          <Card>
-            <CardHeader>
-              <CardTitle>Orders</CardTitle>
-              <CardDescription>
-                Track performance and user engagement metrics. Monitor trends
-                and identify growth opportunities.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              Page views are up 25% compared to last month.
-            </CardContent>
-          </Card>
+          <MyOrder />
         </TabsContent>
       </Tabs>
     </div>
