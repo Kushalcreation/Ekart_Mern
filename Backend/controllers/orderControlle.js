@@ -214,9 +214,9 @@ const getAllOrdersAdmin = async (req, res) => {
 
 const getSalesData = async (req, res) => {
   try {
-    const totalUser = await User.countDocument({});
-    const totalProducts = await Product.countDocument({});
-    const totalOrders = await Order.countDocument({ status: "Paid" });
+    const totalUsers = await User.countDocuments({});
+    const totalProducts = await Product.countDocuments({});
+    const totalOrders = await Order.countDocuments({ status: "Paid" });
 
     // Total Sales Amount
     const totalSaleAgg = await Order.aggregate([
@@ -236,19 +236,18 @@ const getSalesData = async (req, res) => {
       {
         $group: {
           _id: {
-            $dateToString: { format: "%y-%m-%d", date: $createdAt },
+            $dateToString: { format: "%Y-%m-%d", date: "  $createdAt" },
           },
           amount: { $sum: "$amount" },
         },
       },
-      { sort: { _id: 1 } },
+      { $sort: { _id: 1 } },
     ]);
 
     const formattedSales = salesByDate.map((item) => ({
       date: item._id,
       amount: item.amount,
     }));
-    console.lof(formattedSales);
 
     res.json({
       success: true,
