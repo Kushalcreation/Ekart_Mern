@@ -10,32 +10,62 @@ const Navbar = () => {
   const { user } = useSelector((store) => store.user);
   const { cart } = useSelector((store) => store.product);
 
-  const accessToken = localStorage.getItem("accessToken");
   const admin = user?.role === "admin" ? true : false;
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // const logoutHandler = async () => {
+  //   try {
+  //     const res = await axios.post(
+  //       "http://localhost:3000/api/user/logout",
+  //       {},
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${accessToken}`,
+  //         },
+  //       },
+  //     );
+  //     if (res.data.success) {
+  //       localStorage.removeItem("accessToken");
+  //       dispatch(setUser(null));
+  //       toast.success(res.data.message);
+  //       navigate("/");
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //     toast.error("Logout failed");
+  //   }
+  // };
+
   const logoutHandler = async () => {
     try {
-      const res = await axios.post(
-        "http://localhost:3000/api/user/logout",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
+      const token = localStorage.getItem("accessToken");
+
+      if (token) {
+        const res = await axios.post(
+          "http://localhost:3000/api/user/logout",
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
-        },
-      );
-      if (res.data.success) {
-        localStorage.removeItem("accessToken");
-        dispatch(setUser(null));
-        toast.success(res.data.message);
-        navigate("/");
+        );
+
+        if (res.data.success) {
+          toast.success(res.data.message || "Logged out successfully");
+        }
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Logout failed");
+      console.error("Logout API error:", error.response?.data || error.message);
+    } finally {
+      // Clear frontend authentication even if the API fails
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+
+      dispatch(setUser(null));
+      navigate("/login");
     }
   };
 

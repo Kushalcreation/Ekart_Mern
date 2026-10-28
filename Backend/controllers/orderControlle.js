@@ -2,6 +2,8 @@ const razorpayInstance = require("../config/razorpay.js");
 const { Order } = require("../models/orderModel.js");
 const crypto = require("crypto");
 const Cart = require("../models/cartModel.js");
+const User = require("../models/userModel.js");
+const Product = require("../models/productModel.js");
 
 const createOrder = async (req, res) => {
   try {
@@ -210,10 +212,63 @@ const getAllOrdersAdmin = async (req, res) => {
   }
 };
 
+const getSalesData = async (req, res) => {
+  try {
+    const totalUser = await User.countDocument({});
+    const totalProducts = await Product.countDocument({});
+    const totalOrders = await Order.countDocument({ status: "Paid" });
+
+    // Total Sales Amount
+    const totalSaleAgg = await Order.aggregate([
+      { $match: { status: "Paid" } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]);
+
+    const totalSales = totalSaleAgg[0]?.total || 0;
+
+    // sales grouped by date(last 30 days)
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const salesByDate = await Order.aggregate([
+      { $match: { status: "Paid", createdAt: { $gte: thirtyDaysAgo } } },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%y-%m-%d", date: $createdAt },
+          },
+          amount: { $sum: "$amount" },
+        },
+      },
+      { sort: { _id: 1 } },
+    ]);
+
+    const formattedSales = salesByDate.map((item) => ({
+      date: item._id,
+      amount: item.amount,
+    }));
+    console.lof(formattedSales);
+
+    res.json({
+      success: true,
+      totalUsers,
+      totalProducts,
+      totalOrders,
+      totalSales,
+      sales: formattedSales,
+    });
+  } catch (error) {
+    console.error("Erroe fetching sales date", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createOrder,
   verifyPayment,
   getMyOrder,
   getUserOrder,
   getAllOrdersAdmin,
+  getSalesData,
 };

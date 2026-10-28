@@ -6,8 +6,6 @@ const AdminOrders = () => {
   const [loading, setLoading] = useState(true);
   const accessToken = localStorage.getItem("accessToken");
 
-  console.log("orders", orders);
-
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -19,11 +17,10 @@ const AdminOrders = () => {
             },
           },
         );
-
-        console.log("ADMIN ORDERS API RESPONSE:", data.data);
+        console.log("ORDERS ARRAY:", data.orders);
 
         if (data.success) {
-          setOrders(data.orders);
+          setOrders(data.orders || []);
         }
       } catch (error) {
         console.error("❌ Failed to fetch admin orders:", error);
@@ -66,15 +63,20 @@ const AdminOrders = () => {
                 <tr key={order._id} className="hover:bg-gray-50">
                   <td className="px-4 py-2 border">{order._id}</td>
                   <td className="px-4 py-2 border">
-                    {order.user?.name} <br />
+                    {order.user
+                      ? `${order.user.firstName || ""} ${order.user.lastName || ""}`.trim() ||
+                        "Unknown"
+                      : "Unknown"}{" "}
+                    <br />
                     <span className="text-xs text-gray-500">
-                      {order.user?.email}
+                      {order.user?.email || "N/A"}
                     </span>
                   </td>
                   <td className="px-4 py-2 border">
                     {order.products?.map((p, idx) => (
-                      <div key={idx} className="text-sm">
-                        {p.productName} × {p.quantity}
+                      <div key={p.productId?._id || idx} className="text-sm">
+                        {p.productId?.productName || "Product unavailable"} ×{" "}
+                        {p.quantity}
                       </div>
                     ))}
                   </td>
